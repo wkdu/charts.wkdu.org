@@ -1,0 +1,31 @@
+{
+    "week_of": "Tue Apr 03 2018 00:00:00 GMT-0400 (EDT)",
+    "week_of_format": "April 3",
+    "playlists": [
+        {
+            "date": "Tue X/XX/18",
+            "date_raw": "",
+            "show": {
+                "title": "XXXX Show",
+                "dj": "",
+                "genre": "",
+                "times": ""
+            },
+            "show_raw": "XXXX Show on Tue X/XX/18",
+            "tracks": [
+                {
+                    "artist": "",
+                    "track": "",
+                    "album": "",
+                    "label": "",
+                    "new": false,
+                    "local": false
+                },
+                ...
+            ],
+            "url": ""
+        },
+        ...
+    ],
+    "last_updated": ""
+}

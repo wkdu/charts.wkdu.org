@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "moment": "^2.22.0",
     "scrape-it": "^5.0.3"
   }

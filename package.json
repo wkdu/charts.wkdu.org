@@ -10,7 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.6.0",
+    "fs-extra": "^5.0.0",
     "moment": "^2.22.0",
-    "scrape-it": "^5.0.3"
+    "scrape-it": "^5.0.3",
+    "vue": "^2.5.16",
+    "vuex": "^3.0.1"
   }
 }

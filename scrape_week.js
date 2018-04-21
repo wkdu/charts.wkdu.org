@@ -4,13 +4,15 @@ const moment = require('moment');
 const fs = require('fs-extra');
 
 const file_dir = 'build/data';
-const now = Date.now();
-const mnow = function() { return moment(now); };
-const week_of = mnow().day('Tuesday');
 
-// Gather dates for last week's charting period (Tuesday thru next Monday)
-const days = [2, 3, 4, 5, 6, 7, 8, 9];
+// cron run script at 12:05AM Tuesdays
+const now = new Date('April 17, 2018 00:05:00');//Date.now(); // new Date('April 17, 2018 00:05:00');
+const mnow = function() { return moment(now); };
+
+// Gather dates for last week's charting period (Tuesday thru following Monday)
+const days = [-5, -4, -3, -2, -1, 0, 1];
 const week_dates = days.map(day => mnow().day(day).format('dddd, M/D/YY'));
+const week_of = mnow().day(days[0]);
 
 // Pull playlists from dates matching "this week" from the site
 scrapeIt('http://wkdu.org/station/playlists/all', {
@@ -82,7 +84,7 @@ function scrapePlaylists(urls) {
         scrapeIt(playlistUrl, {
             show_raw: '.panel-col-first .blockpanel .pane-title a',
             show: {
-                listItem: '.panel-col-last .blockpanel',
+                selector: '.panel-col-last .blockpanel',
                 data: {
                     title: '.pane-title a',
                     djs: {
@@ -112,13 +114,13 @@ function scrapePlaylists(urls) {
                     local: '.views-field-local-music'
                 }
             },
-            date: {
+            date_raw: {
                 selector: '.panel-col-first .blockpanel .pane-title a',
                 convert: x => x.split(' on ')[1]
             },
-            date_unix: {
+            date_md: {
                 selector: '.panel-col-first .blockpanel .pane-title a',
-                convert: x => moment(x.split(' on ')[1], 'ddd M/D/YY').unix() //TO-DO NOTE: all playlists on same date with have same unix timestmap
+                convert: x => moment(x.split(' on ')[1], 'ddd M/D/YY').format('M/D')
             }
         })
         .then(({ data, response }) => {
@@ -128,7 +130,7 @@ function scrapePlaylists(urls) {
                 week_of_playlists.push(playlist);
                 console.log(`INFO: Playlist "${playlist.show_raw}" added with ${playlist.tracks.length} tracks.`);
             } else {
-                console.log(`INFO: Playlist "${playlist.show_raw}" skipped because there were no tracks.`);
+                console.log(`INFO: Playlist skipped. (there were no tracks OR nodeURL not found)`);
             }
             callback();
         });
@@ -159,54 +161,56 @@ function scrapePlaylists(urls) {
 }
 
 function saveChartsToJSON(week_of_playlists) {
-    const week_of_start = mnow().day(2).format('MMMM D YYYY');
-    const week_of_end = mnow().day(9).format('MMMM D YYYY')
+    const week_of_start = mnow().day(days[0]).format('MMMM D, YYYY');
+    const week_of_end = mnow().day(days[days.length-1]).format('MMMM D, YYYY');
+    const week_ending = mnow().day(days[days.length-1]+1).format('MMMM D, YYYY');
     const playlistsData = { 
+        week_ending,
         week_of_start,
         week_of_end,
-        week_of_playlists,
+        playlists: week_of_playlists,
         last_updated: moment().unix()
     };
 
     // save to JSON (file name format: "week_of_MM_DD_YYY.json")
-    const file_date = mnow().day(2).format('MM_DD_YY');
-    const file_name = `${file_dir}/weeks/week_of_${file_date}.json`;
+    const file_date = mnow().day(days[days.length-1]+1).format('MM_DD_YY');
+    const file_name = `${file_dir}/weeks/week_ending_${file_date}.json`;
 
     fs.outputJson(file_name, playlistsData)
     .then(() => {
-        console.log(`SUCCESS: Charts for ${week_of_start} saved to JSON. (${file_name})`);
+        console.log(`SUCCESS: Charts for ${week_ending} saved to JSON. (${file_name})`);
     })
     .catch(err => {
         console.log(`ERROR: There was an issue while saving charts to JSON. Exiting script...`);
         throw err;   
     });
     
-    // edit chart_week.json by appending this week's charts
-    appendWeekToJSON(week_of_start, file_name);  
+    // edit chart_week.json by adding this week's charts to front of array
+    appendWeekToJSON(week_ending, file_name);  
 }
 
 
-function appendWeekToJSON(week_of, file) {
+function appendWeekToJSON(week_ending, file) {
      
     /*  chart_week.json format:
         [
             {
-                "week_of": "",
+                "week_ending": "",
                 "file": ""
             },
             ...
         ]
     */
 
-    const week = { week_of, file };
+    const week = { week_ending, file };
     const json_file = `${file_dir}/chart_week.json`;
 
     fs.readJson(json_file)
     .then(chartsArr => { // file already exists
-        fs.outputJson(json_file, chartsArr.push(week))
+        chartsArr.unshift(week)
+        fs.outputJson(json_file, chartsArr)
         .then(() => {
-            console.log(`SUCCESS: chart_week.json - file appended. (chart for ${week_of})`)
-
+            console.log(`SUCCESS: chart_week.json - file appended. (chart for week ending ${week_ending})`)
         })
         .catch(writeErr => {
             console.log(`ERROR: There was an issue while appending charts to JSON. Exiting script...`);

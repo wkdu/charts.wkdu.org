@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 const file_dir = 'scraper/data';
 
 // cron run script at 12:05AM Tuesdays
-const now = new Date('April 17, 2018 00:05:00');//Date.now(); // new Date('April 17, 2018 00:05:00');
+const now = Date.now(); // new Date('April 17, 2018 00:05:00');
 const mnow = function() { return moment(now); };
 
 // Gather dates for last week's charting period (Tuesday thru following Monday)

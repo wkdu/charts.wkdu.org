@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { countArtistAlbums } from './lib/chartCounts';
+import { countArtistAlbums, countArtists, countLabels } from './lib/chartCounts';
 import sortUtil from './lib/sortUtil';
 
 class App extends Component {
@@ -13,7 +13,7 @@ class App extends Component {
       playlists: [],
       selectedPlaylists: [],
       tracksType: 'new',
-      chartType: 'album',
+      chartsType: 'album',
       chartTracks: [],
       charts: [],
       uppercase: false,
@@ -25,8 +25,11 @@ class App extends Component {
     this.handleClickSelectAll = this.handleClickSelectAll.bind(this);
     this.handleClickSortPlaylists = this.handleClickSortPlaylists.bind(this);
     this.handleChangeTrackType = this.handleChangeTrackType.bind(this);
-    this.handleClickSortPlays = this.handleClickSortPlays.bind(this);
+    this.handleChangeChartType = this.handleChangeChartType.bind(this);
+    this.handleClickSortZtoA = this.handleClickSortZtoA.bind(this);
     this.handleClickSortAtoZ = this.handleClickSortAtoZ.bind(this);
+    this.handleClickSortPlays = this.handleClickSortPlays.bind(this);
+    this.handleClickSortArtistAtoZ = this.handleClickSortArtistAtoZ.bind(this);
     this.handleClickToggleCase = this.handleClickToggleCase.bind(this);
   }
 
@@ -44,31 +47,44 @@ class App extends Component {
     }
   }
 
-  generateCharts(selectedPlaylists, tracksType) {
+  generateCharts(selectedPlaylists, tracksType, chartsType) {
     // generate charts (sorted by count descending)
 
     // combine tracks from selected playlists into a single array
-    let tracks = [];
-    for (let i = 0; i < selectedPlaylists.length; i++) {
-      let pidx = selectedPlaylists[i];
-      let playlist = this.state.playlists[pidx];
+    if (selectedPlaylists.length > 0) {
+      let tracks = [];
+      for (let i = 0; i < selectedPlaylists.length; i++) {
+        let pidx = selectedPlaylists[i];
+        let playlist = this.state.playlists[pidx];
 
-      tracks.push.apply(tracks, playlist.tracks);
+        tracks.push.apply(tracks, playlist.tracks);
+      }
+
+      // filter tracks based on tracksType
+      let filteredTracks = [];
+      if (tracksType === 'new') {
+        filteredTracks = tracks.filter(trk => trk.new.length > 0);
+      } else if (tracksType === 'local') {
+        filteredTracks = tracks.filter(trk => trk.local.length > 0);
+      } else if (tracksType === 'all') {
+        filteredTracks = tracks;
+      }
+
+      // generate charts based on chartsType
+      let charts = [];
+      if (chartsType === 'album') {
+        // charts: [ { artist: '', album: '', plays: '' }, ...]
+        charts = countArtistAlbums(filteredTracks).sort(sortUtil.Counts());
+      } else if (chartsType === 'artist') {
+        // charts: [ { artist: '', plays: '' }, ...]
+        charts = countArtists(filteredTracks).sort(sortUtil.Counts());
+      } else if (chartsType === 'label') {
+        // charts: [ { label: '', plays: '' }, ...]
+        charts = countLabels(filteredTracks).sort(sortUtil.Counts());
+      }
+
+      this.setState({ charts, chartTracks: tracks });
     }
-
-    // filter tracks based on tracksType
-    let filteredTracks = []; 
-    if (tracksType === 'new') {
-      filteredTracks = tracks.filter(trk => trk.new.length > 0);
-    } else if (tracksType === 'local') {
-      filteredTracks = tracks.filter(trk => trk.local.length > 0);
-    } else if (tracksType === 'all') {
-      filteredTracks = tracks;
-    }
-
-    // charts: [ { artist: '', album: '', plays: '' }, ...]
-    const charts = countArtistAlbums(filteredTracks).sort(sortUtil.Counts());
-    this.setState({ charts, chartTracks: tracks });
   }
 
   componentDidMount() {
@@ -109,20 +125,26 @@ class App extends Component {
     // calculate charts based on selected playlists
     const selected = [...event.target.options].filter(o => o.selected).map(o => parseInt(o.value, 10));
     this.setState({ selectedPlaylists: selected });
-    this.generateCharts(selected, this.state.tracksType);
+    this.generateCharts(selected, this.state.tracksType, this.state.chartsType);
   }
 
   handleClickSelectAll(event) {
     // select all playlists (create array from 0..N-1 where N = playlists.length)
     const allIdxs = [...Array(this.state.playlists.length).keys()];
     this.setState({ selectedPlaylists: allIdxs });
-    this.generateCharts(allIdxs, this.state.tracksType);
+    this.generateCharts(allIdxs, this.state.tracksType, this.state.chartsType);
   }
 
   handleChangeTrackType(event) {
     const tracksType = event.target.value
     this.setState({ tracksType });
-    this.generateCharts(this.state.selectedPlaylists, tracksType);
+    this.generateCharts(this.state.selectedPlaylists, tracksType, this.state.chartsType);
+  }
+
+  handleChangeChartType(event) {
+    const chartsType = event.target.value
+    this.setState({ chartsType });
+    this.generateCharts(this.state.selectedPlaylists, this.state.tracksType, chartsType);
   }
 
   handleClickSortPlaylists() {
@@ -130,12 +152,22 @@ class App extends Component {
     this.setState({ playlists: sorted })
   }
 
+  handleClickSortAtoZ() {
+    const sorted = this.state.charts.sort(sortUtil.AtoZ(this.state.chartsType));
+    this.setState({ charts: sorted });
+  }
+
+  handleClickSortZtoA() {
+    const sorted = this.state.charts.sort(sortUtil.AtoZ(this.state.chartsType)).reverse();
+    this.setState({ charts: sorted });
+  }
+
   handleClickSortPlays() {
     const sorted = this.state.charts.sort(sortUtil.Counts());
     this.setState({ charts: sorted });
   }
 
-  handleClickSortAtoZ() {
+  handleClickSortArtistAtoZ() {
     const sorted = this.state.charts.sort(sortUtil.AtoZ('artist'));
     this.setState({ charts: sorted });
   }
@@ -155,7 +187,22 @@ class App extends Component {
     const currentWeekEnding = (this.state.currentWeek.week_ending) ? this.state.currentWeek.week_ending : '';
 
     const noTracksOfTrackType = (this.state.tracksType !== 'all') ? ((this.state.chartTracks).filter(track => track[this.state.tracksType].length > 0).length === 0) : false;
-    const noTracksOfChartType = (this.state.chartTracks).filter(track => track[this.state.chartType].length > 0).length === 0;
+    const noTracksOfChartType = (this.state.chartTracks).filter(track => track[this.state.chartsType].length > 0).length === 0;
+
+    const trNoTracksOfTrackType = (this.state.charts.length === 0 && this.state.selectedPlaylists.length > 0 && noTracksOfTrackType) &&
+      (<tr>
+        <td colSpan="4">Could not generate charts from selected playlist(s) with zero {this.state.tracksType} tracks.</td>
+      </tr>);
+
+    const trNoTracksOfChartType = (this.state.charts.length === 0 && this.state.selectedPlaylists.length > 0 && noTracksOfChartType) &&
+      (<tr>
+        <td colSpan="4">Could not generate charts from selected playlist(s) without {this.state.chartsType} information.</td>
+      </tr>);
+
+    const trNoSelectedPlaylists = (this.state.charts.length === 0 && this.state.selectedPlaylists.length === 0) &&
+      (<tr>
+        <td colSpan="4">Please select playlists in order to generate charts.</td>
+      </tr>);
 
     return (
       <div className="card">
@@ -196,16 +243,11 @@ class App extends Component {
                       <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortPlaylists}>Sort new → old</button>
                     </div>  
                   </div>
-                  <div className="form-row mt-1">
+                </div>
+                <div className="mb-2">
+                  <h6>Charts Options</h6>
+                  <div className="form-row my-2">
                     <div className="mx-auto">
-                      <div className="form-check form-check-inline">
-                        <input className="form-check-input" type="radio" name="trackTypeRadioOpt" id="radioTrackTypeAll"
-                          value="all"
-                          onChange={this.handleChangeTrackType}
-                          checked={this.state.tracksType === 'all'}
-                        />
-                        <label className="form-check-label" htmlFor="radioTrackTypeAll">All tracks</label>
-                      </div>
                       <div className="form-check form-check-inline">
                         <input className="form-check-input" type="radio" name="trackTypeRadioOpt" id="radioTrackTypeNew"
                           value="new"
@@ -222,18 +264,64 @@ class App extends Component {
                         />
                         <label className="form-check-label" htmlFor="radioTrackTypeLocal">Local only</label>
                       </div>
+                      <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="trackTypeRadioOpt" id="radioTrackTypeAll"
+                          value="all"
+                          onChange={this.handleChangeTrackType}
+                          checked={this.state.tracksType === 'all'}
+                        />
+                        <label className="form-check-label" htmlFor="radioTrackTypeAll">All tracks</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-row my-2">
+                    <div className="mx-auto">
+                      <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="chartTypeRadioOpt" id="radioChartTypeAlbum"
+                          value="album"
+                          onChange={this.handleChangeChartType}
+                          checked={this.state.chartsType === 'album'}
+                        />
+                        <label className="form-check-label" htmlFor="radioChartTypeAlbum">Albums</label>
+                      </div>
+                      <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="chartTypeRadioOpt" id="radioChartTypeArtist"
+                          value="artist"
+                          onChange={this.handleChangeChartType}
+                          checked={this.state.chartsType === 'artist'}
+                        />
+                        <label className="form-check-label" htmlFor="radioChartTypeArtist">Artists</label>
+                      </div>
+                      <div className="form-check form-check-inline">
+                        <input className="form-check-input" type="radio" name="chartTypeRadioOpt" id="radioChartTypeLabel"
+                          value="label"
+                          onChange={this.handleChangeChartType}
+                          checked={this.state.chartsType === 'label'}
+                        />
+                        <label className="form-check-label" htmlFor="radioChartTypeLabel">Labels</label>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mb-2">
                   <h6>Display Options</h6>
-                  <div className="form-row mb-3">
+                  <div className="form-row mb-2">
+                    <div className="col">
+                      <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortAtoZ}>Sort {this.state.chartsType} A → Z</button>
+                    </div>
+                    <div className="col">
+                      <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortZtoA}>Sort {this.state.chartsType} Z → A</button>
+                    </div>
+                  </div>
+                  <div className="form-row mb-2">
                     <div className="col">
                       <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortPlays}>Sort by play count</button>
                     </div>
                     <div className="col">
-                      <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortAtoZ}>Sort artist A → Z</button>
+                      {this.state.chartsType === 'album' && (
+                        <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortArtistAtoZ}>Sort artist A → Z</button>
+                      )}
                     </div>
                   </div>
                   <div className="form-row">
@@ -246,46 +334,89 @@ class App extends Component {
             </div>
             <div className="col-lg-8">
               <h5>Week ending {currentWeekEnding}</h5>
-              <table className={"table table-sm chart-albums " + (this.state.uppercase && 'uppercase')}>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Artist</th>
-                    <th>Album/Record</th>
-                    <th>Plays</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {this.state.charts.length > 0 && this.state.charts.map((obj, idx) => {
-                      return (
-                        <tr className="charts-row" key={'ch'+idx}>
-                          <td>{idx+1}</td>
-                          <td>{obj.artist}</td>
-                          <td>{obj.album}</td>
-                          <td>{obj.plays}</td>
-                        </tr>
-                      );
-                    })
-                  }
-                  {(this.state.charts.length === 0 && this.state.selectedPlaylists.length > 0
-                    && noTracksOfTrackType) &&
+              {this.state.chartsType === 'album' && (
+                <table className={"table table-sm chart-albums " + (this.state.uppercase && 'uppercase')}>
+                  <thead>
                     <tr>
-                      <td colSpan="4">Could not generate charts from selected playlist(s) with zero {this.state.tracksType} tracks.</td>
+                      <th>#</th>
+                      <th>Artist</th>
+                      <th>Album/Record</th>
+                      <th>Plays</th>
                     </tr>
-                  }
-                  {(this.state.charts.length === 0 && this.state.selectedPlaylists.length > 0
-                    && noTracksOfChartType) &&
+                  </thead>
+                  <tbody>
+                    {this.state.charts.length > 0 && this.state.charts.map((obj, idx) => {
+                        return (
+                          <tr className="charts-row" key={'ch'+idx}>
+                            <td>{idx+1}</td>
+                            <td>{obj.artist}</td>
+                            <td>{obj.album}</td>
+                            <td>{obj.plays}</td>
+                          </tr>
+                        );
+                      })
+                    }
+                    {trNoTracksOfTrackType}
+                    {trNoTracksOfChartType}
+                    {trNoSelectedPlaylists}
+                  </tbody>
+                </table>
+                )
+              }
+              {this.state.chartsType === 'artist' && (
+                <table className={"table table-sm chart-artists " + (this.state.uppercase && 'uppercase')}>
+                  <thead>
                     <tr>
-                      <td colSpan="4">Could not generate charts from selected playlist(s) without {this.state.chartType} information.</td>
+                      <th>#</th>
+                      <th>Artist</th>
+                      <th>Plays</th>
                     </tr>
-                  }
-                  {(this.state.charts.length === 0 && this.state.selectedPlaylists.length === 0) &&
+                  </thead>
+                  <tbody>
+                    {this.state.charts.length > 0 && this.state.charts.map((obj, idx) => {
+                        return (
+                          <tr className="charts-row" key={'ch'+idx}>
+                            <td>{idx+1}</td>
+                            <td>{obj.artist}</td>
+                            <td>{obj.plays}</td>
+                          </tr>
+                        );
+                      })
+                    }
+                    {trNoTracksOfTrackType}
+                    {trNoTracksOfChartType}
+                    {trNoSelectedPlaylists}
+                  </tbody>
+                </table>
+                )
+              }
+              {this.state.chartsType === 'label' && (
+                <table className={"table table-sm chart-labels " + (this.state.uppercase && 'uppercase')}>
+                  <thead>
                     <tr>
-                      <td colSpan="4">Please select playlists in order to generate charts.</td>
+                      <th>#</th>
+                      <th>Label</th>
+                      <th>Plays</th>
                     </tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {this.state.charts.length > 0 && this.state.charts.map((obj, idx) => {
+                        return (
+                          <tr className="charts-row" key={'ch'+idx}>
+                            <td>{idx+1}</td>
+                            <td>{obj.label}</td>
+                            <td>{obj.plays}</td>
+                          </tr>
+                        );
+                      })
+                    }
+                    {trNoTracksOfTrackType}
+                    {trNoTracksOfChartType}
+                    {trNoSelectedPlaylists}
+                  </tbody>
+                </table>
+                )
+              }
             </div>
           </div>
         </div>

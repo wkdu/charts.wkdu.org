@@ -3,6 +3,10 @@
   color: white;
 }
 
+h6 {
+  font-weight: bold;
+}
+
 td {
   user-select: all;
   -webkit-user-select: all;

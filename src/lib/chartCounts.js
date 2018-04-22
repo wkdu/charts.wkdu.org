@@ -13,7 +13,7 @@ const countArtists = function(tracks) {
         let artistNameLC = artist.toLowerCase();
         
         if (artistNameLC in allArtists) {
-            allArtists[artistNameLC].count++;
+            allArtists[artistNameLC].plays++;
         } else {
             allArtists[artistNameLC] = { artist, plays: 1 };
         }
@@ -33,7 +33,7 @@ const countArtistAlbums = function(tracks) {
             let artistAlbumLC = artistAlbum.toLowerCase();
 
             if (artistAlbumLC in allAlbums) {
-                allAlbums[artistAlbumLC].count++;
+                allAlbums[artistAlbumLC].plays++;
             } else {
                 allAlbums[artistAlbumLC] = { artist, album, plays: 1 };
             }
@@ -52,7 +52,7 @@ const countLabels = function(tracks) {
             let labelNameLC = label.toLowerCase();
             
             if (labelNameLC in allLabels) {
-                allLabels[labelNameLC].count++;
+                allLabels[labelNameLC].plays++;
             } else {
                 allLabels[labelNameLC] = { label, plays: 1 };
             }

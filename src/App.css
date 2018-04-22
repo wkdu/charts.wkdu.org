@@ -1,0 +1,24 @@
+.card-header {
+  background: #24468c;
+  color: white;
+}
+
+h6 {
+  font-weight: bold;
+}
+
+td {
+  user-select: all;
+  -webkit-user-select: all;
+  -moz-user-select: all;
+  -ms-user-select: all;
+}
+
+.uppercase tr.charts-row td {
+  text-transform: uppercase;
+}
+
+table.chart-albums th:last-child,
+table.chart-albums tr.charts-row td:last-child {
+  text-align: center;
+}

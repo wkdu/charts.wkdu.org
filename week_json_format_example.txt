@@ -1,0 +1,32 @@
+{
+    "week_ending": "April 10, 2018",
+    "week_of_start": "April 3, 2018",
+    "week_of_end": "April 9, 2018"
+    "playlists": [
+        {
+            
+            "show_raw": "XXXX Show on Tue M/DD/18",
+            "show": {
+                "title": "XXXX Show",
+                "dj": "",
+                "genre": "",
+                "times": ""
+            },
+            "tracks": [
+                {
+                    "artist": "",
+                    "track": "",
+                    "album": "",
+                    "label": "",
+                    "new": false,
+                    "local": false
+                },
+                ...
+            ],
+            "date_raw": "Tue M/DD/18",
+            "date_md": "M/D",
+        },
+        ...
+    ],
+    "last_updated": ""
+}

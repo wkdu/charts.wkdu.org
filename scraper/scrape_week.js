@@ -117,11 +117,11 @@ function scrapePlaylists(urls) {
             },
             date_raw: {
                 selector: '.panel-col-first .blockpanel .pane-title a',
-                convert: x => x.split(' on ')[1]
+                convert: x => x.substring(x.lastIndexOf('on')+3)
             },
             date_md: {
                 selector: '.panel-col-first .blockpanel .pane-title a',
-                convert: x => moment(x.split(' on ')[1], 'ddd M/D/YY').format('M/D')
+                convert: x => moment(x.substring(x.lastIndexOf('on')+3), 'ddd M/D/YY').format('M/D')
             }
         })
         .then(({ data, response }) => {

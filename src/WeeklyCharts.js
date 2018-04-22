@@ -6,6 +6,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
+
     this.state = {
       weeks: [],
       selectedWeekIdx: 0,
@@ -35,14 +36,18 @@ class App extends Component {
 
   loadPlaylists(weekObj) {
     if (weekObj) {
-      fetch(weekObj.file)
+      fetch(weekObj.api_url)
       .then(response => response.json())
       .then(data => {
-        this.setState({
-          currentWeek: weekObj,
-          playlists: data.playlists,
-          loading: false
-        });
+        if (data.playlists) {
+          this.setState({
+            currentWeek: weekObj,
+            playlists: data.playlists,
+            loading: false
+          });
+        } else {
+          // TO-DO: handle error loading playlists
+        }
       });
     }
   }
@@ -73,14 +78,11 @@ class App extends Component {
       // generate charts based on chartsType
       let charts = [];
       if (chartsType === 'album') {
-        // charts: [ { artist: '', album: '', plays: '' }, ...]
-        charts = countArtistAlbums(filteredTracks).sort(sortUtil.Counts());
+        charts = countArtistAlbums(filteredTracks).sort(sortUtil.Counts());   // charts: [ { artist: '', album: '', plays: '' }, ...]
       } else if (chartsType === 'artist') {
-        // charts: [ { artist: '', plays: '' }, ...]
-        charts = countArtists(filteredTracks).sort(sortUtil.Counts());
+        charts = countArtists(filteredTracks).sort(sortUtil.Counts());        // charts: [ { artist: '', plays: '' }, ...]
       } else if (chartsType === 'label') {
-        // charts: [ { label: '', plays: '' }, ...]
-        charts = countLabels(filteredTracks).sort(sortUtil.Counts());
+        charts = countLabels(filteredTracks).sort(sortUtil.Counts());         // charts: [ { label: '', plays: '' }, ...]
       }
 
       this.setState({ charts, chartTracks: tracks });
@@ -88,13 +90,10 @@ class App extends Component {
   }
 
   componentDidMount() {
-    // TO-DO: https://stackoverflow.com/questions/46988339/react-fetch-request-for-local-json-file-returns-index-html-and-not-the-json-file
-    // fetch('./data/chart_week.json', {
-    fetch('https://api.myjson.com/bins/ektfn')
+    fetch('./api/weeks')
     .then(response => {
-      // console.log(response);
       if (response.status >= 400) {
-
+        // TO-DO: handle error loading weeks
       }
       return response.json(); 
     })
@@ -182,7 +181,7 @@ class App extends Component {
       return <option value={idx} key={'w'+idx}>{week.week_ending}</option>;
     });
     const playlistsList = (this.state.playlists).map((playlist, idx) => {
-      return <option value={idx} key={'p'+idx}>{playlist.show.title}</option>;
+      return <option value={idx} key={'p'+idx}>{playlist.date_md}-{playlist.show.title}</option>;
     });
     const currentWeekEnding = (this.state.currentWeek.week_ending) ? this.state.currentWeek.week_ending : '';
 

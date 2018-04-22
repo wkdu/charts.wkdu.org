@@ -3,17 +3,22 @@
   "version": "0.1.0",
   "dependencies": {
     "async": "^2.6.0",
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
     "fs-extra": "^5.0.0",
     "moment": "^2.22.0",
+    "path": "^0.12.7",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-scripts": "1.1.4",
     "scrape-it": "^5.0.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "server": "node server",
+    "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "weekly": "node scraper/scrape_week"
   }
 }

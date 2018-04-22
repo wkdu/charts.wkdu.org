@@ -21,6 +21,9 @@ class App extends Component {
             </div>
           </div>
         </main>
+        <footer className="mb-3 text-center">
+          <a href="http://wkdu.org">WKDU.org</a> | <a href="https://github.com/wkdu/charts.wkdu.org">Source code</a>
+        </footer>
       </div>
     );
   }

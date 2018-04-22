@@ -239,7 +239,7 @@ class App extends Component {
                       <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSelectAll}>Select all</button>
                     </div>
                     <div className="col">
-                      <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortPlaylists}>Sort new → old</button>
+                      <button type="button" className="btn btn-light btn-block" onClick={this.handleClickSortPlaylists}>Sort new ↔ old</button>
                     </div>  
                   </div>
                 </div>
@@ -418,6 +418,7 @@ class App extends Component {
               }
             </div>
           </div>
+          <div><small>Note: Playlists are scraped weekly at 12:05AM on Tuesdays.</small></div>
         </div>
       </div>
     );

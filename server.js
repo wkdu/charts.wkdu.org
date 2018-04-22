@@ -56,8 +56,8 @@ apiRouter.use('/week/:mmddyyyy', (req, res, next) => {
   }
 });
 
-// apiRouter.use('/api/year/:yyyy', (res, req) => {});
-// apiRouter.use('/api/years', (res, req) => {});
+// apiRouter.use('/year/:yyyy', (res, req) => {});
+// apiRouter.use('/years', (res, req) => {});
 
 app.use('/api', apiRouter);
 app.use('/', express.static(buildFilePath));

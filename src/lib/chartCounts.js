@@ -1,7 +1,8 @@
 import stringUtil from './stringUtil';
 
 const isAlbumSelfTitled = function(album) {
-    return (album.toLowerCase().indexOf('s/t') > -1 || album.toLowerCase().indexOf('st') > -1);
+    let albumLC = album.toLowerCase();
+    return (albumLC.indexOf('s/t') > -1 || albumLC.indexOf('st') > -1);
 };
 
 // counts: { artist1: { artist: Artist1, plays: int }, ... }

@@ -1,9 +1,10 @@
 const async = require('async');
 const scrapeIt = require('scrape-it');
 const moment = require('moment');
+const path = require('path');
 const fs = require('fs-extra');
 
-const file_dir = 'scraper/data';
+const file_dir = path.join(__dirname, 'data');
 
 // cron run script at 12:05AM Tuesdays
 const now = Date.now(); // new Date('April 17, 2018 00:05:00');

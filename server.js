@@ -13,7 +13,7 @@ const dataFilePath = (filename) => path.join(__dirname, `scraper/data/${filename
 const buildFilePath = path.join(__dirname, 'build');
 
 // API routes
-apiRouter.use('/weeks/', (req, res, next) => {
+apiRouter.get('/weeks/', (req, res) => {
   res.set('Content-Type', 'application/json');
 
   let jsonStream = fs.createReadStream(dataFilePath('chart_week.json'));
@@ -29,7 +29,7 @@ apiRouter.use('/weeks/', (req, res, next) => {
 
 });
 
-apiRouter.use('/week/:mmddyyyy', (req, res, next) => {
+apiRouter.get('/week/:mmddyyyy', (req, res) => {
   res.set('Content-Type', 'application/json');
 
   let { mmddyyyy } = req.params;
@@ -56,8 +56,8 @@ apiRouter.use('/week/:mmddyyyy', (req, res, next) => {
   }
 });
 
-// apiRouter.use('/year/:yyyy', (res, req) => {});
-// apiRouter.use('/years', (res, req) => {});
+// apiRouter.get('/year/:yyyy', (req, res) => {});
+// apiRouter.get('/years', (req, res) => {});
 
 app.use('/api', apiRouter);
 app.use('/', express.static(buildFilePath));
